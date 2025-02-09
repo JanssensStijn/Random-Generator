@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:namer_app/main.dart';
 import 'package:provider/provider.dart';
@@ -15,25 +14,27 @@ class FavoritesPage extends StatelessWidget {
       );
     }
 
-    return ListView(
-      children: [
-        if (favorites.wordpairs.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('No favorite wordpairs yet.'),
-            ),
-          )
-        else
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('You have '
-                  '${appState.favorites.wordpairs.length} favorite wordpairs:'),
-            ),
-          ),
-        ...favorites.wordpairs.map(
-          (pair) => ListTile(
+    return ListView.builder(
+      itemCount: favorites.wordpairs.length + favorites.colors.length + 2,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return favorites.wordpairs.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('No favorite wordpairs yet.'),
+                  ),
+                )
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('You have '
+                        '${appState.favorites.wordpairs.length} favorite wordpairs:'),
+                  ),
+                );
+        } else if (index <= favorites.wordpairs.length) {
+          var pair = favorites.wordpairs[index - 1];
+          return ListTile(
             leading: IconButton(
               icon: Icon(Icons.favorite, size: 40),
               onPressed: () {
@@ -41,25 +42,25 @@ class FavoritesPage extends StatelessWidget {
               },
             ),
             title: Text(pair.asLowerCase),
-          ),
-        ),
-        if (favorites.colors.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('No favorite colors yet.'),
-            ),
-          )
-        else
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('You have '
-                  '${appState.favorites.colors.length} favorite colors:'),
-            ),
-          ),
-        ...favorites.colors.map(
-          (color) => ListTile(
+          );
+        } else if (index == favorites.wordpairs.length + 1) {
+          return favorites.colors.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('No favorite colors yet.'),
+                  ),
+                )
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('You have '
+                        '${appState.favorites.colors.length} favorite colors:'),
+                  ),
+                );
+        } else {
+          var color = favorites.colors[index - favorites.wordpairs.length - 2];
+          return ListTile(
             leading: IconButton(
               icon: Icon(Icons.favorite, color: color, size: 40),
               onPressed: () {
@@ -81,9 +82,9 @@ class FavoritesPage extends StatelessWidget {
                     (color.b * 255).toString()),
               ],
             ),
-          ),
-        ),
-      ],
+          );
+        }
+      },
     );
   }
 }
