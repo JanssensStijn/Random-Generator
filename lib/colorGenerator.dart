@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:namer_app/bigCard.dart';
 import 'package:namer_app/main.dart';
 import 'package:provider/provider.dart';
 

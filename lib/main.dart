@@ -4,6 +4,8 @@ import 'package:namer_app/home.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_randomcolor/flutter_randomcolor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -30,13 +32,18 @@ class MyApp extends StatelessWidget {
 }
 
 class _Favorites {
-  final List<WordPair> wordpairs = [];
-  final List<Color> colors = [];
+  List<WordPair> wordpairs = [];
+  List<Color> colors = [];
 }
 
 class MyAppState extends ChangeNotifier {
   var currentWordPair = WordPair.random();
   var currentColor = RandomColor.getColorObject(Options());
+  var favorites = _Favorites();
+
+  MyAppState() {
+    _loadFavorites();
+  }
 
   void getNextWordPair() {
     currentWordPair = WordPair.random();
@@ -48,14 +55,13 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  var favorites = _Favorites();
-
   void toggleWordFavorite() {
     if (favorites.wordpairs.contains(currentWordPair)) {
       favorites.wordpairs.remove(currentWordPair);
     } else {
       favorites.wordpairs.add(currentWordPair);
     }
+    _saveFavorites();
     notifyListeners();
   }
 
@@ -65,15 +71,51 @@ class MyAppState extends ChangeNotifier {
     } else {
       favorites.colors.add(currentColor);
     }
+    _saveFavorites();
     notifyListeners();
   }
+
   void removeWordPairFavorite(WordPair pair) {
     favorites.wordpairs.remove(pair);
+    _saveFavorites();
     notifyListeners();
   }
 
   void removeColorFavorite(Color color) {
     favorites.colors.remove(color);
+    _saveFavorites();
+    notifyListeners();
+  }
+
+  void _saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(
+        'wordpairs',
+        jsonEncode(favorites.wordpairs
+            .map((wp) => {'first': wp.first, 'second': wp.second})
+            .toList()));
+    prefs.setString('colors',
+        jsonEncode(favorites.colors.map((color) => color.value).toList()));
+  }
+
+  void _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final wordpairsString = prefs.getString('wordpairs');
+    final colorsString = prefs.getString('colors');
+
+    if (wordpairsString != null) {
+      final wordpairsList = jsonDecode(wordpairsString) as List;
+      favorites.wordpairs = wordpairsList.map((wp) {
+        return WordPair(wp['first'], wp['second']);
+      }).toList();
+    }
+
+    if (colorsString != null) {
+      final colorsList = jsonDecode(colorsString) as List;
+      favorites.colors =
+          colorsList.map((colorValue) => Color(colorValue)).toList();
+    }
+
     notifyListeners();
   }
 }
